@@ -1,5 +1,7 @@
-# Makefile for cocotb simulation
+# Makefile for cocotb + Icarus Verilog
+# Runs a simple smoke test
 
+# defaults
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
@@ -7,13 +9,13 @@ PROJECT_SOURCES = project.v
 
 ifneq ($(GATES),yes)
 
-# RTL simulation
+# RTL simulation:
 SIM_BUILD        = sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
 
 else
 
-# Gate-level simulation
+# Gate level simulation:
 SIM_BUILD        = sim_build/gl
 COMPILE_ARGS    += -DGL_TEST
 COMPILE_ARGS    += -DFUNCTIONAL
@@ -26,11 +28,14 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
-# Allow sharing configuration
-COMPILE_ARGS += -I$(SRC_DIR)
+# Allow sharing configuration between design and testbench via `include`:
+COMPILE_ARGS    += -I$(SRC_DIR)
 
-# cocotb config
+# Top-level module in DUT
 TOPLEVEL = tt_um_adpll
-MODULE   = test
 
+# Python test file
+MODULE = test
+
+# include cocotb's make rules
 include $(shell cocotb-config --makefiles)/Makefile.sim
