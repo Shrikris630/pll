@@ -32,10 +32,10 @@ endif
 # Allow sharing configuration between design and testbench via `include`:
 COMPILE_ARGS        += -I$(SRC_DIR)
 
-# Set the actual top module for Cocotb (TinyTapeout convention)
+# DUT top module
 TOPLEVEL = tt_um_adpll
 
-# MODULE is the basename of the Python test file (test.py)
+# MODULE is the basename of the Python test file
 MODULE = test
 
 # include cocotb's make rules to take care of the simulator setup
