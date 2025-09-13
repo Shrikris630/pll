@@ -1,87 +1,40 @@
-# SPDX-FileCopyrightText: © 2024 Tiny Tapeout
-# SPDX-License-Identifier: Apache-2.0
-
-# SPDX-FileCopyrightText: © 2024 Tiny Tapeout
-# SPDX-License-Identifier: Apache-2.0
-
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, RisingEdge
+from cocotb.triggers import RisingEdge, Timer
 
 
 @cocotb.test()
 async def test_adpll(dut):
-    """Testbench for TinyTapeout ADPLL module (tt_um_adpll)"""
+    """Testbench for TinyTapeout ADPLL module (tt_um_adpll)."""
+    cocotb.log.info("Starting ADPLL test...")
 
-    dut._log.info("Starting ADPLL test...")
-
-    # Start clock (20 ns period = 50 MHz)
+    # Start reference clock
     cocotb.start_soon(Clock(dut.clk, 20, units="ns").start())
 
-    # Reset and initialize inputs
-    dut.rst.value = 1
-    dut.clr.value = 0
+    # Reset
+    dut.rst_n.value = 0
     dut.pgm.value = 0
-    dut.out_sel.value = 0
-    dut.param_sel.value = 0
-    dut.pgm_value.value = 0
-    await ClockCycles(dut.clk, 10)
+    await Timer(100, units="ns")
+    dut.rst_n.value = 1
+    await Timer(100, units="ns")
 
-    dut.rst.value = 0
-    dut.clr.value = 1
-    await ClockCycles(dut.clk, 2)
-    dut.clr.value = 0
-
-    dut._log.info("Programming loop parameters...")
-
-    # Program Ndiv
+    # Program the loop parameters (dummy example)
+    cocotb.log.info("Programming loop parameters...")
     dut.pgm.value = 1
-    dut.param_sel.value = 0
-    dut.pgm_value.value = 0
-    await ClockCycles(dut.clk, 1)
-
-    # Program alpha
-    dut.param_sel.value = 1
-    dut.pgm_value.value = 2
-    await ClockCycles(dut.clk, 1)
-
-    # Program beta
-    dut.param_sel.value = 2
-    dut.pgm_value.value = 3
-    await ClockCycles(dut.clk, 1)
-
-    # Program DCO offset
-    dut.param_sel.value = 3
-    dut.pgm_value.value = 8
-    await ClockCycles(dut.clk, 1)
-
-    # Program DCO threshold
-    dut.param_sel.value = 4
-    dut.pgm_value.value = 12
-    await ClockCycles(dut.clk, 1)
-
-    # Program kdco
-    dut.param_sel.value = 5
-    dut.pgm_value.value = 1
-    await ClockCycles(dut.clk, 1)
-
+    await Timer(100, units="ns")
     dut.pgm.value = 0
 
-    dut._log.info("Running ADPLL...")
+    # Run simulation and monitor outputs
+    cocotb.log.info("Running ADPLL...")
+    fb_seen = []
+    dco_seen = []
 
-    # Observe feedback clock over some cycles
-    for i in range(50):
-        await RisingEdge(dut.clk)
-        dut._log.info(f"Cycle {i}: fb_clk={dut.fb_clk.value} dco_out={dut.dco_out.value}")
-
-    # Example check: fb_clk should toggle at least once
-    fb_seen = [int(dut.fb_clk.value)]
-    for _ in range(200):
+    for cycle in range(50):
         await RisingEdge(dut.clk)
         fb_seen.append(int(dut.fb_clk.value))
+        dco_seen.append(int(dut.dco_out.value))
+        cocotb.log.info(f"Cycle {cycle}: fb_clk={fb_seen[-1]} dco_out={dco_seen[-1]}")
 
-    assert any(fb_seen[i] != fb_seen[i - 1] for i in range(1, len(fb_seen))), "fb_clk never toggled!"
-    dut._log.info("ADPLL test passed")
-
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # Assertions
+    assert any(fb_seen[i] != fb_seen[i-1] for i in range(1, len(fb_seen))), "fb_clk never toggled!"
+    assert any(dco_seen[i] != dco_seen[i-1] for i in range(1, len(dco_seen))), "dco_out never toggled!"
