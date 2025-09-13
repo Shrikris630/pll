@@ -8,13 +8,10 @@ You can also include images in this folder and reference them in the markdown. E
 -->
 
 ## How it works
-
-Explain how your project works
+Works at 2MHz using 50MHz clock as a sampling clock. However, it is programmable based on the inputs given
 
 ## How to test
-
-Explain how to use your project
+Step the frequency 2MHz by 0.5MHz and measure the lock time. Also measure the jitter present in 2MHz output
 
 ## External hardware
-
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+Function generator, Oscilloscope, VCO
